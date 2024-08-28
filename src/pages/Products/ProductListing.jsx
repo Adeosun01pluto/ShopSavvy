@@ -19,7 +19,7 @@ const ProductListing = () => {
         let q = query(collection(db, selectedCategory));
         if (searchTerm) {
           q = query(q, where('name', '>=', searchTerm), where('name', '<=', searchTerm + '\uf8ff'));
-        }        
+        }
         const querySnapshot = await getDocs(q);
         const items = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setProducts(items);
@@ -49,7 +49,7 @@ const ProductListing = () => {
   };
 
   const handleProductClick = (id) => {
-    navigate(`/product/${id}`);
+    navigate(`/product/${selectedCategory}/${id}`); // Construct the URL based on selectedCategory
   };
 
   const getCategoryIcon = () => {
@@ -70,26 +70,27 @@ const ProductListing = () => {
   };
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
-      <h1 className="text-3xl font-bold text-center mb-6">Product Listing</h1>
-      <div className="flex flex-col md:flex-row items-center justify-between mb-6 space-y-4 md:space-y-0">
-        <div className="relative w-full md:w-1/2">
+    <div className="p-3 md:p-6 bg-gray-100 min-h-screen">
+      <h1 className="text-xl md:text-3xl font-bold text-center mb-6">Product Listing</h1>
+      <div className="md:w-[80%] mx-auto flex flex-col md:flex-row items-center justify-between mb-6 space-y-4 md:space-y-0">
+        <div className="relative w-full md:flex-1">
           <input
             type="text"
             placeholder="Search products..."
-            className="p-3 w-full bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="p-2 text-sm md:text-md md:p-3 w-full bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-[4rem]" // Adjust padding-right to make space for the button
             value={searchTerm}
             onChange={handleSearchChange}
           />
           <button
             onClick={handleSearchClick}
-            className="absolute right-0 top-0 mt-2 mr-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="absolute right-0 top-0 h-full px-4 bg-blue-500 text-white rounded-r-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            style={{ transform: 'translateX(-1px)' }} // Slight adjustment to avoid overlapping borders
           >
             Search
           </button>
         </div>
         <select
-          className="p-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="p-2 text-sm md:text-md md:p-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-auto md:ml-4"
           value={selectedCategory}
           onChange={handleCategoryChange}
         >
@@ -101,12 +102,13 @@ const ProductListing = () => {
           <option value="phoneParts">Phone Parts</option>
         </select>
       </div>
+
       {loading ? (
         <div className="flex justify-center items-center min-h-screen">
           <ThreeDots className="w-12 h-12 text-blue-500 animate-spin" />
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mx-auto md:w-[80%]">
           {products.length === 0 ? (
             <p className="text-center text-gray-500">No products found.</p>
           ) : (

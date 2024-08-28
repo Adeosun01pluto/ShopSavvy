@@ -6,6 +6,7 @@ import { addDoc, collection } from 'firebase/firestore';
 const Inventory = () => {
   const [selectedCollection, setSelectedCollection] = useState('laptops');
   const [formData, setFormData] = useState({});
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
 
   useEffect(() => {
     setFormData({}); // Reset form data when collection changes
@@ -19,8 +20,11 @@ const Inventory = () => {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
+    setConfirmDialogOpen(true); // Show the confirmation dialog
+  };
+  const handleConfirmAddStock = async () => {
     try {
       await addDoc(collection(db, selectedCollection), formData);
       alert('New stock added successfully!');
@@ -28,6 +32,8 @@ const Inventory = () => {
     } catch (error) {
       console.error('Error adding document: ', error);
       alert('Failed to add stock.');
+    } finally {
+      setConfirmDialogOpen(false); // Close the confirmation dialog
     }
   };
 
@@ -122,6 +128,28 @@ const Inventory = () => {
         {renderFormFields()}
         <button type="submit" className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition duration-200">Add Stock</button>
       </form>
+      {confirmDialogOpen && (
+        <div className="fixed inset-0 flex justify-center items-center bg-gray-800 bg-opacity-75 z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-sm">
+            <h2 className="text-lg font-bold mb-4">Confirm Add Stock</h2>
+            <p>Are you sure you want to add this stock?</p>
+            <div className="mt-6 flex justify-end gap-4">
+              <button
+                onClick={() => setConfirmDialogOpen(false)}
+                className="px-4 py-2 bg-gray-300 rounded-lg"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmAddStock}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

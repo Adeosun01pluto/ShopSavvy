@@ -1,28 +1,54 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaHome, FaSearch, FaUser, FaSignOutAlt, FaBars, FaTimes } from 'react-icons/fa';
-import { auth } from '../firebase/config';
+import { FaHome, FaSignOutAlt, FaBars, FaTimes, FaUser } from 'react-icons/fa';
+import { auth, db } from '../firebase/config';
 import { signOut } from 'firebase/auth';
+import { AiOutlineProduct } from 'react-icons/ai';
+import { RxDashboard } from 'react-icons/rx';
+import { doc, getDoc } from 'firebase/firestore';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userRole, setUserRole] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      setIsLoggedIn(!!user);
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        setIsLoggedIn(true);
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        if (userDoc.exists()) {
+          console.log(userDoc.data().isWorker, userDoc.data().isAdmin)
+          if(userDoc.data().isAdmin){
+            setUserRole("Admin")
+          }
+          if(userDoc.data().isWorker){
+            setUserRole("Worker")
+          }
+        }
+      } else {
+        setIsLoggedIn(false);
+        setUserRole(null);
+      }
     });
 
     return () => unsubscribe();
   }, []);
-
   const handleLogout = async () => {
     try {
       await signOut(auth);
       navigate('/login');
     } catch (error) {
       console.error('Error signing out: ', error);
+    }
+  };
+
+  const handleDashboardClick = () => {
+    if (userRole === 'Admin') {
+      navigate('/owner-dashboard');
+    } else if (userRole === 'Worker') {
+      navigate('/worker-dashboard');
     }
   };
 
@@ -51,12 +77,15 @@ const Navbar = () => {
             <Link to="/" className="py-4 px-2 text-gray-500 hover:text-[#435EEF]">
               <FaHome className="inline mr-1" /> Home
             </Link>
-            <Link to="/search" className="py-4 px-2 text-gray-500 hover:text-[#435EEF]">
-              <FaSearch className="inline mr-1" /> Search
-            </Link>
             <Link to="/products" className="py-4 px-2 text-gray-500 hover:text-[#435EEF]">
-              <FaSearch className="inline mr-1" /> Products
+              <AiOutlineProduct className="inline mr-1" /> Products
             </Link>
+            <button
+              onClick={handleDashboardClick}
+              className="py-4 px-2 text-gray-500 hover:text-[#435EEF]"
+            >
+              <RxDashboard className="inline mr-1" /> Dashboard
+            </button>
             {isLoggedIn ? (
               <button
                 onClick={handleLogout}
@@ -80,12 +109,18 @@ const Navbar = () => {
             <Link to="/" className="py-2 px-4 text-gray-500 hover:text-[#435EEF]" onClick={() => setIsOpen(false)}>
               <FaHome className="inline mr-1" /> Home
             </Link>
-            <Link to="/search" className="py-2 px-4 text-gray-500 hover:text-[#435EEF]" onClick={() => setIsOpen(false)}>
-              <FaSearch className="inline mr-1" /> Search
-            </Link>
             <Link to="/products" className="py-2 px-4 text-gray-500 hover:text-[#435EEF]" onClick={() => setIsOpen(false)}>
-              <FaSearch className="inline mr-1" /> Products
+              <AiOutlineProduct className="inline mr-1" /> Products
             </Link>
+            <button
+              onClick={() => {
+                handleDashboardClick();
+                setIsOpen(false);
+              }}
+              className="py-2 px-4 text-gray-500 hover:text-[#435EEF]"
+            >
+              <RxDashboard className="inline mr-1" /> Dashboard
+            </button>
             {isLoggedIn ? (
               <button
                 onClick={() => {

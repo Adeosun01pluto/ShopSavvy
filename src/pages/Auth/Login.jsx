@@ -2,21 +2,28 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider, db } from '../../firebase/config';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { FaGoogle, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { TailSpin } from 'react-loader-spinner';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingG, setLoadingG] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
-
+  const createUserDocument = async (user, name, phoneNumber) => {
+    await setDoc(doc(db, 'users', user.uid), {
+      userId: user.uid,
+      name: name,
+      email: user.email,
+      phoneNumber: phoneNumber,
+      isAdmin: false,
+      isWorker: false,
+    });
+  };
   const handleLogin = async (e) => {
     e.preventDefault();
     setError(null);
@@ -37,7 +44,8 @@ const Login = () => {
     setLoadingG(true);
 
     try {
-      await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(auth, googleProvider);
+      await createUserDocument(result.user, result.user.displayName, '');      
       routeUser();
     } catch (error) {
       setError('Error logging in with Google: ' + error.message);

@@ -1,36 +1,25 @@
-import React, { useState } from 'react';
-import { FaUsers, FaUserTie, FaChartLine, FaWarehouse, FaEdit, FaBan } from 'react-icons/fa';
+import React from 'react';
 import Sidebar from '../../components/Sidebar';
-import OwnerDashboardHome from './OwnerDashboardHome';
 import { Route, Routes } from 'react-router-dom';
+import OwnerDashboardHome from './OwnerDashboardHome';
 import Workers from './Workers';
 import Inventory from './Inventory';
 import Sales from './Sales';
 
 const OwnerDashboard = () => {
-
   return (
-    <div className="flex flex-col lg:flex-row relative">
+    <div className="flex flex-col lg:flex-row relative min-h-screen">
       <Sidebar isOwner={true} />
-      <div className="flex-1 p-4 lg:p-10">
-        <h1 className="text-2xl lg:text-3xl font-bold mb-6">Owner Dashboard</h1>
-      
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="flex-1 container p-0 py-2 sm:px-4 lg:px-10 overflow-auto mx-auto">
+        <header className="mb-8 hidden lg:block px-4 sticky top-0 z-20">
+          <h1 className="text-3xl font-bold">Owner Dashboard</h1>
+        </header>
+        <main className="">
           <Routes>
             <Route index element={<OwnerDashboardHome />} />
             <Route path="workers" element={<Workers />} />
             <Route path="inventory" element={<Inventory />} />
             <Route path="sales" element={<Sales />} />
-            {/* 
-            <Route path="edit-profile" element={<EditProfile />} />
-            {isAdmin && (
-              <>
-                <Route path="customers" element={<Customers />} />
-                <Route path="price-list" element={<PriceList />} />
-                <Route path="blog-manager" element={<BlogManager />} />
-                <Route path="notifications" element={<Notifications />} />
-              </>
-            )} */}
           </Routes>
         </main>
       </div>
