@@ -18,6 +18,7 @@ const ProductDetail = () => {
   const [editWarranty, setEditWarranty] = useState('');
   const [editStock, setEditStock] = useState('');
   const [isAdmin, setIsAdmin] = useState(false); // Example flag for admin
+  const [isWorker, setIsWorker] = useState(false); // Example flag for admin
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -49,6 +50,7 @@ const ProductDetail = () => {
           setEditStock(productData.stock);
           // Example check for admin
           setIsAdmin(userData.isAdmin); // Replace with actual admin check
+          setIsWorker(userData.isWorker); // Replace with actual admin check
         } else {
           console.error('No such document!');
         }
@@ -79,6 +81,7 @@ const ProductDetail = () => {
         productId: id,
         category,
         workerId: auth.currentUser.uid,
+        price: product.price,
         quantity,
         timestamp: new Date().toISOString(),
       };
@@ -243,7 +246,7 @@ const ProductDetail = () => {
                   <p className="text-gray-700">Price: ${product.price}</p>
                   <p className="text-gray-700">Warranty: {product?.warranty}</p>
                   <p className="text-lg font-bold">Quantities: {product.stock}</p>
-                  {!isAdmin && (
+                  {isWorker && (
                     <div className="flex relative items-center w-full">
                       <input
                         type="number"

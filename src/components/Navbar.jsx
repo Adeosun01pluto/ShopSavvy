@@ -19,7 +19,6 @@ const Navbar = () => {
         setIsLoggedIn(true);
         const userDoc = await getDoc(doc(db, 'users', user.uid));
         if (userDoc.exists()) {
-          console.log(userDoc.data().isWorker, userDoc.data().isAdmin)
           if(userDoc.data().isAdmin){
             setUserRole("Admin")
           }

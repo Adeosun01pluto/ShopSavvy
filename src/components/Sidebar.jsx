@@ -1,17 +1,28 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FaBars, FaTimes, FaHome, FaUsers, FaBoxes, FaChartLine, FaSignOutAlt } from 'react-icons/fa';
+import { signOut } from 'firebase/auth';
+import { auth } from '../firebase/config';
 
 const Sidebar = ({ isOwner }) => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const toggleSidebar = () => setIsOpen(!isOpen);
 
   // Determine the dashboard type based on the current URL path
   const isOwnerDashboard = location.pathname.startsWith('/owner-dashboard');
   const isWorkerDashboard = location.pathname.startsWith('/worker-dashboard');
-
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      toggleSidebar()
+      navigate('/login');
+    } catch (error) {
+      console.error('Error signing out: ', error);
+    }
+  };
   return (
     <div className=''>
       <div className="container mx-auto lg:hidden p-4 flex justify-between items-center text-white">
@@ -54,10 +65,9 @@ const Sidebar = ({ isOwner }) => {
                 <FaChartLine className="mr-2" /> Sales
               </Link>
             </li>
-            <li onClick={toggleSidebar}>
-              <Link to="/logout" className="flex items-center p-2 hover:bg-blue-700 rounded">
-                <FaSignOutAlt className="mr-2" /> Logout
-              </Link>
+            <li onClick={handleLogout} className="flex items-center p-2 hover:bg-blue-700 rounded">
+              <span className=''><FaSignOutAlt className="mr-2" /></span>
+              <span className="flex items-center p-2 hover:bg-blue-700 rounded"> Logout</span>
             </li>
           </ul>
         </nav>

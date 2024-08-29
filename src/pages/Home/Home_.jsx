@@ -1,15 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FaSearch, FaShoppingCart, FaMicrochip, FaMobile, FaLaptop, FaHeadphones } from 'react-icons/fa';
+import { FaSearch, FaShoppingCart, FaMicrochip, FaMobile, FaLaptop, FaHeadphones, FaMapMarkerAlt, FaInfoCircle, FaPhone } from 'react-icons/fa';
 
 const Home_ = () => {
-  const featuredProducts = [
-    { id: 1, name: 'Smartphone X', price: 599.99, image: 'https://placehold.co/200x200' },
-    { id: 2, name: 'Laptop Pro', price: 1299.99, image: 'https://placehold.co/200x200' },
-    { id: 3, name: 'Wireless Earbuds', price: 149.99, image: 'https://placehold.co/200x200' },
-    { id: 4, name: 'Arduino Kit', price: 49.99, image: 'https://placehold.co/200x200' },
-  ];
-
   const categories = [
     { name: 'Smartphones', icon: <FaMobile /> },
     { name: 'Laptops', icon: <FaLaptop /> },
@@ -46,22 +39,30 @@ const Home_ = () => {
         </div>
       </div>
 
-      {/* Featured Products */}
+      {/* Contact Us, About Us, Location */}
       <div className="mb-12">
-        <h2 className="text-2xl font-semibold mb-4">Featured Products</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {featuredProducts.map((product) => (
-            <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-              <img src={product.image} alt={product.name} className="w-full h-48 object-cover" />
-              <div className="p-4">
-                <h3 className="font-semibold text-lg mb-2">{product.name}</h3>
-                <p className="text-gray-600">${product.price.toFixed(2)}</p>
-                <button className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-500 transition duration-300">
-                  Add to Cart
-                </button>
-              </div>
-            </div>
-          ))}
+        <h2 className="text-2xl font-semibold mb-4">Get in Touch</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Contact Us */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h3 className="text-xl font-semibold mb-2"><FaPhone className="inline-block mr-2" /> Contact Us</h3>
+            <p className="text-gray-600">Feel free to reach out to us at:</p>
+            <p className="text-blue-600">support@electrostore.com</p>
+            <p className="text-gray-600">+1 234 567 890</p>
+          </div>
+
+          {/* About Us */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h3 className="text-xl font-semibold mb-2"><FaInfoCircle className="inline-block mr-2" /> About Us</h3>
+            <p className="text-gray-600">We are dedicated to providing the best electronic products at great prices. Our mission is to deliver high-quality gadgets and components with exceptional customer service.</p>
+          </div>
+
+          {/* Location */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h3 className="text-xl font-semibold mb-2"><FaMapMarkerAlt className="inline-block mr-2" /> Location</h3>
+            <p className="text-gray-600">Visit us at:</p>
+            <p className="text-blue-600">123 Electro St, Tech City, TX 12345</p>
+          </div>
         </div>
       </div>
 
