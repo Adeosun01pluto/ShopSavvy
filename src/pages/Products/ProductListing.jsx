@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../../firebase/config';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import { FaLaptop, FaMobileAlt, FaTabletAlt, FaTv, FaBatteryFull } from 'react-icons/fa';
 import { ThreeDots } from 'react-loader-spinner';
@@ -10,19 +10,33 @@ const ProductListing = () => {
   const [selectedCategory, setSelectedCategory] = useState('laptops');
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 2; // Number of items per page
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
       try {
-        let q = query(collection(db, selectedCategory));
-        if (searchTerm) {
-          q = query(q, where('name', '>=', searchTerm), where('name', '<=', searchTerm + '\uf8ff'));
-        }
-        const querySnapshot = await getDocs(q);
-        const items = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setProducts(items);
+        let items = [];
+        
+        // Fetch all documents from the selected category
+        const querySnapshot = await getDocs(collection(db, selectedCategory));
+        items = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        // Convert search term to lowercase
+        const lowerSearchTerm = searchTerm.trim().toLowerCase();
+        
+        // Filter results locally if search term is provided
+        const filteredItems = searchTerm
+          ? items.filter(item => 
+              Object.values(item).some(value => 
+                typeof value === 'string' && value.toLowerCase().includes(lowerSearchTerm)
+              )
+            )
+          : items;
+
+        setProducts(filteredItems);
       } catch (error) {
         console.error('Error fetching products: ', error);
       } finally {
@@ -35,21 +49,17 @@ const ProductListing = () => {
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
+    setCurrentPage(1); // Reset to first page on search
   };
 
   const handleCategoryChange = (e) => {
     setSelectedCategory(e.target.value);
     setSearchTerm(''); // Clear search when changing categories
-  };
-
-  const handleSearchClick = () => {
-    // Trigger fetch based on searchTerm and selectedCategory
-    setLoading(true);
-    fetchProducts();
+    setCurrentPage(1); // Reset to first page on category change
   };
 
   const handleProductClick = (id) => {
-    navigate(`/product/${selectedCategory}/${id}`); // Construct the URL based on selectedCategory
+    navigate(`/product/${selectedCategory}/${id}`);
   };
 
   const getCategoryIcon = () => {
@@ -69,6 +79,22 @@ const ProductListing = () => {
     }
   };
 
+  // Calculate the items to display for the current page
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = products.slice(indexOfFirstItem, indexOfLastItem);
+
+  // Handle page navigation
+  const handlePageChange = (direction) => {
+    setCurrentPage(prevPage => {
+      if (direction === 'next') {
+        return Math.min(prevPage + 1, Math.ceil(products.length / itemsPerPage));
+      } else {
+        return Math.max(prevPage - 1, 1);
+      }
+    });
+  };
+
   return (
     <div className="p-3 md:p-6 bg-gray-100 min-h-screen">
       <h1 className="text-xl md:text-3xl font-bold text-center mb-6">Product Listing</h1>
@@ -77,17 +103,10 @@ const ProductListing = () => {
           <input
             type="text"
             placeholder="Search products..."
-            className="p-2 text-sm md:text-md md:p-3 w-full bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-[4rem]" // Adjust padding-right to make space for the button
+            className="p-2 text-sm md:text-md md:p-3 w-full bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={searchTerm}
             onChange={handleSearchChange}
           />
-          <button
-            onClick={handleSearchClick}
-            className="absolute right-0 top-0 h-full px-4 bg-blue-500 text-white rounded-r-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            style={{ transform: 'translateX(-1px)' }} // Slight adjustment to avoid overlapping borders
-          >
-            Search
-          </button>
         </div>
         <select
           className="p-2 text-sm md:text-md md:p-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-auto md:ml-4"
@@ -104,37 +123,60 @@ const ProductListing = () => {
       </div>
 
       {loading ? (
-        <div className="flex justify-center items-center min-h-screen">
-          <ThreeDots className="w-12 h-12 text-blue-500 animate-spin" />
+        <div className="flex justify-center items-center h-64">
+          <ThreeDots color="#3B82F6" height={50} width={50} />
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mx-auto md:w-[80%]">
-          {products.length === 0 ? (
-            <p className="text-center text-gray-500">No products found.</p>
-          ) : (
-            products.map(product => (
-              <div
-                key={product.id}
-                className="bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden cursor-pointer p-4"
-                onClick={() => handleProductClick(product.id)}
-              >
-                {product.imageUrl ? (
-                  <img
-                    src={product.imageUrl}
-                    alt={product.name}
-                    className="w-full h-24 object-cover"
-                  />
-                ) : (
-                  getCategoryIcon()
-                )}
-                <div className="p-4">
-                  <h2 className="text-xl font-semibold mb-2">{product.brand}</h2>
-                  <p className="text-gray-700 mb-2">{product.model}</p>
-                  <p className="text-lg font-bold">${product.price}</p>
+        <div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mx-auto md:w-[80%]">
+            {currentItems.length === 0 ? (
+              <p className="text-center text-gray-500 col-span-full">No products found.</p>
+            ) : (
+              currentItems.map(product => (
+                <div
+                  key={product.id}
+                  className="bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden cursor-pointer transition-transform hover:scale-105"
+                  onClick={() => handleProductClick(product.id)}
+                >
+                  {product.imageUrl ? (
+                    <img
+                      src={product.imageUrl}
+                      alt={product.name}
+                      className="w-full h-48 object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-48 flex items-center justify-center bg-gray-200">
+                      {getCategoryIcon()}
+                    </div>
+                  )}
+                  <div className="p-4">
+                    <h2 className="text-xl font-semibold mb-2">{product.brand}</h2>
+                    <p className="text-gray-700 mb-2">{product.model}</p>
+                    <p className="text-lg font-bold">${product.price}</p>
+                  </div>
                 </div>
-              </div>
-            ))
-          )}
+              ))
+            )}
+          </div>
+          <div className="flex justify-between items-center mt-6 md:w-[30%] mx-auto">
+            <button
+              className="p-2 bg-blue-500 text-white rounded-lg disabled:opacity-50"
+              onClick={() => handlePageChange('prev')}
+              disabled={currentPage === 1}
+            >
+              Previous
+            </button>
+            <span>
+              Page {currentPage} of {Math.ceil(products.length / itemsPerPage)}
+            </span>
+            <button
+              className="p-2 bg-blue-500 text-white rounded-lg disabled:opacity-50"
+              onClick={() => handlePageChange('next')}
+              disabled={currentPage === Math.ceil(products.length / itemsPerPage)}
+            >
+              Next
+            </button>
+          </div>
         </div>
       )}
     </div>

@@ -36,7 +36,6 @@ const ProductDetail = () => {
         }
 
         const userData = userDocSnap.data();
-        const adminUID = userData.userId; // Determine if the user is an admin
 
         const docRef = doc(db, category, id);
         const docSnap = await getDoc(docRef);
