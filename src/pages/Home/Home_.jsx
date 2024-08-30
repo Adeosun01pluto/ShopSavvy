@@ -4,10 +4,10 @@ import { FaSearch, FaShoppingCart, FaMicrochip, FaMobile, FaLaptop, FaHeadphones
 
 const Home_ = () => {
   const categories = [
-    { name: 'Smartphones', icon: <FaMobile /> },
-    { name: 'Laptops', icon: <FaLaptop /> },
-    { name: 'Audio', icon: <FaHeadphones /> },
-    { name: 'Components', icon: <FaMicrochip /> },
+    { name: 'Smartphones', icon: <FaMobile />, link: "phones" },
+    { name: 'Laptops', icon: <FaLaptop />, link: "laptops" },
+    { name: 'Audio', icon: <FaHeadphones />, link: "gadgets" },
+    { name: 'Components', icon: <FaMicrochip />, link: "phoneParts" },
   ];
 
   return (
@@ -20,7 +20,7 @@ const Home_ = () => {
           <Link to="/products" className="bg-white text-blue-600 px-6 py-2 rounded-full font-semibold hover:bg-blue-100 transition duration-300">
             Shop Now
           </Link>
-          <Link to="/search" className="bg-blue-500 text-white px-6 py-2 rounded-full font-semibold hover:bg-blue-400 transition duration-300 flex items-center justify-center">
+          <Link to="/products" className="bg-blue-500 text-white px-6 py-2 rounded-full font-semibold hover:bg-blue-400 transition duration-300 flex items-center justify-center">
             <FaSearch className="mr-2" /> Search Products
           </Link>
         </div>
@@ -31,7 +31,7 @@ const Home_ = () => {
         <h2 className="text-2xl font-semibold mb-4">Categories</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {categories.map((category, index) => (
-            <Link key={index} to={`/category/${category.name.toLowerCase()}`} className="bg-gray-100 p-4 rounded-lg text-center hover:bg-gray-200 transition duration-300">
+            <Link key={index} to="/products" className="bg-gray-100 p-4 rounded-lg text-center hover:bg-gray-200 transition duration-300">
               <div className="text-4xl mb-2 text-blue-600">{category.icon}</div>
               <span className="font-medium">{category.name}</span>
             </Link>
