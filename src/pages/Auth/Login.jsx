@@ -61,11 +61,13 @@ const Login = () => {
       if (userDoc.exists()) {
         const userData = userDoc.data();
         if (userData.isAdmin) {
-          navigate('/owner-dashboard');
+          navigate('/products');
+          // navigate('/owner-dashboard');
         } else if (userData.isWorker) {
-          navigate('/worker-dashboard');
+          // navigate('/worker-dashboard');
+          navigate('/products');
         } else {
-          navigate('/');
+          navigate('/products');
         }
       } else {
         navigate('/');
