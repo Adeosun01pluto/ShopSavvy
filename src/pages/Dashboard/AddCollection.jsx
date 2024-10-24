@@ -157,7 +157,7 @@ const AddCollection = () => {
           required
         />
 
-        <div className="flex gap-4">
+        <div className="flex gap-4 flex-col sm:flex-row">
           <input
             className="outline-none border-gray-100 border-2 p-2 rounded-md"
             type="text"
