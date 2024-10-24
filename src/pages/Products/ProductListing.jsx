@@ -1,36 +1,64 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../../firebase/config';
-import { collection, getDocs } from 'firebase/firestore';
-import { useNavigate } from 'react-router-dom';
+import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
+import { useNavigate, useParams } from 'react-router-dom';
 import { FaLaptop, FaMobileAlt, FaTabletAlt, FaTv, FaBatteryFull } from 'react-icons/fa';
 import { ThreeDots } from 'react-loader-spinner';
 
 const ProductListing = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('laptops');
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('');
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 2; // Number of items per page
   const navigate = useNavigate();
+  const { branchId } = useParams(); // Capture the branchId from the URL
+  
+  // Fetch branch categories
+  useEffect(() => {
+    const fetchCategories = async () => {
+      setLoading(true);
+      try {
+        const branchRef = doc(db, 'branches', branchId);
+        // Fetch the current branch document to get its existing categories
+        const branchDoc = await getDoc(branchRef);
+        const categoriesList = branchDoc.data().categories
+        if (categoriesList.length > 0) {
+          setCategories(branchDoc.data().categories);
+          setSelectedCategory(categoriesList[0].name); // Set the first category as default
+        }
+      } catch (error) {
+        console.error('Error fetching categories: ', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
+    fetchCategories();
+  }, [branchId]);
+
+  // Fetch products based on selected category and branch
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
       try {
         let items = [];
         
-        // Fetch all documents from the selected category
-        const querySnapshot = await getDocs(collection(db, selectedCategory));
-        items = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        if (selectedCategory) {
+          const branchRef = doc(db, 'branches', branchId);
+          const productsSnapshot = await getDocs(collection(branchRef, selectedCategory));
+          items = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        }
 
         // Convert search term to lowercase
         const lowerSearchTerm = searchTerm.trim().toLowerCase();
-        
+
         // Filter results locally if search term is provided
         const filteredItems = searchTerm
-          ? items.filter(item => 
-              Object.values(item).some(value => 
+          ? items.filter(item =>
+              Object.values(item).some(value =>
                 typeof value === 'string' && value.toLowerCase().includes(lowerSearchTerm)
               )
             )
@@ -45,7 +73,7 @@ const ProductListing = () => {
     };
 
     fetchProducts();
-  }, [searchTerm, selectedCategory]);
+  }, [branchId, selectedCategory, searchTerm]);
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -59,7 +87,7 @@ const ProductListing = () => {
   };
 
   const handleProductClick = (id) => {
-    navigate(`/product/${selectedCategory}/${id}`);
+    navigate(`/product/${branchId}/${selectedCategory}/${id}`);
   };
 
   const getCategoryIcon = () => {
@@ -83,7 +111,7 @@ const ProductListing = () => {
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = products.slice(indexOfFirstItem, indexOfLastItem);
-
+  console.log(currentItems)
   // Handle page navigation
   const handlePageChange = (direction) => {
     setCurrentPage(prevPage => {
@@ -113,12 +141,11 @@ const ProductListing = () => {
           value={selectedCategory}
           onChange={handleCategoryChange}
         >
-          <option value="laptops">Laptops</option>
-          <option value="phones">Phones</option>
-          <option value="gadgets">Gadgets</option>
-          <option value="screens">Screens</option>
-          <option value="batteries">Batteries</option>
-          <option value="phoneParts">Phone Parts</option>
+          {categories.map((category) => (
+            <option key={category.id} value={category.name}>
+              {category.name}
+            </option>
+          ))}
         </select>
       </div>
 
@@ -138,7 +165,7 @@ const ProductListing = () => {
                   className="bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden cursor-pointer transition-transform hover:scale-105"
                   onClick={() => handleProductClick(product.id)}
                 >
-                  {product.imageUrl ? (
+                  {/* {product.imageUrl ? (
                     <img
                       src={product.imageUrl}
                       alt={product.name}
@@ -148,11 +175,11 @@ const ProductListing = () => {
                     <div className="w-full h-48 flex items-center justify-center bg-gray-200">
                       {getCategoryIcon()}
                     </div>
-                  )}
+                  )} */}
                   <div className="p-4">
-                    <h2 className="text-xl font-semibold mb-2">{product.brand}</h2>
-                    <p className="text-gray-700 mb-2">{product.model}</p>
-                    <p className="text-lg font-bold">${product.price}</p>
+                    <h2 className="text-xl font-semibold mb-2">{product?.brand}</h2>
+                    <p className="text-gray-700 mb-2">{product?.model}</p>
+                    <p className="text-lg font-semibold">${product?.price || "No Price"}</p>
                   </div>
                 </div>
               ))
@@ -184,3 +211,4 @@ const ProductListing = () => {
 };
 
 export default ProductListing;
+

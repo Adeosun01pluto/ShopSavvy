@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { collection, query, where, getDocs, getDoc, doc } from 'firebase/firestore';
 import { db, auth } from '../../firebase/config'; // Ensure you have the correct path
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart, Bar, ResponsiveContainer } from 'recharts';
 import { FaUsers, FaChartLine, FaUserTie, FaUserCircle, FaExclamationTriangle } from 'react-icons/fa';
+import { useAuth } from '../../context/AuthContext';
 
 function OwnerDashboardHome() {
   const [sales, setSales] = useState([]);
@@ -11,28 +11,9 @@ function OwnerDashboardHome() {
   const [todaySales, setTodaySales] = useState(0);
   const [weekSales, setWeekSales] = useState(0);
   const [monthSales, setMonthSales] = useState(0);
-  const [role, setRole] = useState(null);
-  const [loggedInUser, setLoggedInUser] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [lowStockItems, setLowStockItems] = useState([]);
-
-
-  useEffect(() => {
-    const fetchUserRole = async () => {
-      const user = auth.currentUser;
-      setLoggedInUser(user);
-      if (user) {
-        const userDoc = await getDoc(doc(db, 'users', user.uid)); // Adjust path as needed
-        if (userDoc.exists()) {
-          setRole(userDoc.data().isWorker ? 'worker' : userDoc.data().isAdmin ? 'admin' : 'none');
-        }
-      }
-      setLoading(false);
-    };
-
-    fetchUserRole();
-  }, []);
-
+  const { user } = useAuth(); // Access user from context
+  // TO fetch dashboard Data
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
@@ -99,6 +80,7 @@ function OwnerDashboardHome() {
     fetchDashboardData();
   }, []);
 
+  // TO fetch Low stock items
   useEffect(() => {
     const fetchLowStockItems = async () => {
       try {
@@ -130,6 +112,7 @@ function OwnerDashboardHome() {
 
     fetchLowStockItems();
   }, []);
+  
   return (
     <div className='px-3 sm:p-0'>
       <div>
@@ -162,42 +145,16 @@ function OwnerDashboardHome() {
           <div className="md:flex p-3 md:p-4 items-center gap-4">
             <FaUserCircle className="text-3xl md:text-7xl text-indigo-600 mb-2" />
             <div>
-              {loggedInUser && (
+              {user && (
                 <div>
-                  <p className="text-md md:text-xl">Name: {loggedInUser.displayName || 'N/A'}</p>
-                  <p className="text-md md:text-xl">Email: {loggedInUser.email}</p>
-                  <p className="text-md md:text-xl">Role: {role}</p>
+                  {/* <p className="text-md md:text-xl">Name: {user.name || 'N/A'}</p> */}
+                  <p className="text-md md:text-xl">Email: {user.email}</p>
+                  <p className="text-md md:text-xl">Role: {user.role}</p>
                 </div>
               )}
             </div>
           </div>
         </div>
-
-        {/* Sales Chart */}
-        <h2 className="text-lg lg:text-2xl font-semibold mb-4">Sales Overview</h2>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={sales}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Line type="monotone" dataKey="sales" stroke="#8884d8" />
-          </LineChart>
-        </ResponsiveContainer>
-
-        {/* Users Chart */}
-        <h2 className="text-lg lg:text-2xl font-semibold mt-8 mb-4">Users Overview</h2>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={[{ name: 'Users', value: totalUsers }]}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="value" fill="#82ca9d" />
-          </BarChart>
-        </ResponsiveContainer>
 
         {/* Low Stock Alert */}
         <div className="bg-yellow-100 p-4 rounded-lg shadow mt-8">

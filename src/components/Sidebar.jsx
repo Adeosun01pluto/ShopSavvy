@@ -58,6 +58,11 @@ const Sidebar = ({ isOwner }) => {
                     <FaBoxes className="mr-2" /> Inventory
                   </Link>
                 </li>
+                <li onClick={toggleSidebar}>
+                  <Link to="/owner-dashboard/add-collection" className="flex items-center p-2 hover:bg-blue-700 rounded">
+                    <FaBoxes className="mr-2" /> Add Collections
+                  </Link>
+                </li>
               </>
             )}
             <li onClick={toggleSidebar}>

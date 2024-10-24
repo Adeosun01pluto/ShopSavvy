@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { db } from '../../firebase/config';
-import { collection, getDocs, query, where, updateDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, updateDoc, doc } from 'firebase/firestore';
 import { FaBan, FaCheck, FaUser, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import { ThreeDots } from 'react-loader-spinner';
 
@@ -8,24 +8,38 @@ const Workers = () => {
   const [workers, setWorkers] = useState([]);
   const [expandedWorker, setExpandedWorker] = useState(null);
   const [loading, setLoading] = useState(true);
-
+  const [branches, setBranches] = useState([]);
+  const [selectedBranch, setSelectedBranch] = useState('');
+  const [selectedRole, setSelectedRole] = useState('worker');
 
   useEffect(() => {
-    const fetchWorkers = async () => {
+    const fetchUsers = async () => {
       setLoading(true);
       try {
-        const workersCollection = collection(db, 'users');
-        const q = query(workersCollection, where('isWorker', '==', true));
-        const workersSnapshot = await getDocs(q);
-        const workersList = workersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setWorkers(workersList);
+        const usersCollection = collection(db, 'users');
+        const usersSnapshot = await getDocs(usersCollection);
+        const usersList = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setWorkers(usersList);
       } catch (error) {
-        console.log(error)
-      } finally{
+        console.log(error);
+      } finally {
         setLoading(false);
       }
     };
-    fetchWorkers();
+
+    const fetchBranches = async () => {
+      try {
+        const branchesCollection = collection(db, 'branches');
+        const branchesSnapshot = await getDocs(branchesCollection);
+        const branchesList = branchesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setBranches(branchesList);
+      } catch (error) {
+        console.error('Error fetching branches:', error);
+      }
+    };
+
+    fetchUsers();
+    fetchBranches();
   }, []);
 
   const toggleBlockWorker = async (worker) => {
@@ -42,9 +56,37 @@ const Workers = () => {
   const toggleExpandWorker = (workerId) => {
     setExpandedWorker(expandedWorker === workerId ? null : workerId);
   };
-  if (loading) return <div className='flex items-center justify-center w-full min-h-[40vh]'>
-    <ThreeDots className="text-center"/>
-  </div>;
+
+  const handleRoleChange = async (workerId) => {
+    const confirmation = window.confirm(`Are you sure you want to make this user a ${selectedRole}${selectedRole === 'worker' ? ` in branch ${selectedBranch}` : ''}?`);
+    if (!confirmation) return;
+
+    const workerRef = doc(db, 'users', workerId);
+    const branchName = branches.find(branch => branch.id === selectedBranch)?.name || null;
+
+    // Update the Firestore document
+    await updateDoc(workerRef, {
+      role: selectedRole,
+      branchId: selectedRole === 'worker' ? selectedBranch : null,
+      branchName: branchName, // Store branch name
+      isWorker: selectedRole === 'worker',
+    });
+
+    // Update the workers state immediately for real-time UI feedback
+    setWorkers(workers.map(worker => 
+      worker.id === workerId 
+        ? { ...worker, role: selectedRole, branchId: selectedRole === 'worker' ? selectedBranch : null, branchName: branchName, isWorker: selectedRole === 'worker' } 
+        : worker
+    ));
+
+    alert(`User role updated to ${selectedRole}${selectedRole === 'worker' ? ` in branch ${branchName}` : ''}`);
+  };
+
+  if (loading) return (
+    <div className='flex items-center justify-center w-full min-h-[40vh]'>
+      <ThreeDots className="text-center" />
+    </div>
+  );
 
   return (
     <div className="p-5">
@@ -76,9 +118,43 @@ const Workers = () => {
               <div className="mt-4 bg-gray-100 p-3 rounded">
                 <p><strong>Email:</strong> {worker.email || 'No email available'}</p>
                 <p><strong>Phone:</strong> {worker.phoneNumber || 'No phone available'}</p>
-                {/* <p><strong>Role:</strong> {worker.role || 'Worker'}</p> */}
+                <p><strong>Role:</strong> {worker.role || 'User'}</p>
+                <p><strong>Branch:</strong> {worker.isWorker ? worker.branchName : 'N/A'}</p>
+                <p><strong>Account Created:</strong> {worker.createdAt ? new Date(worker.createdAt).toLocaleDateString() : 'N/A'}</p>
                 <p><strong>Status:</strong> {worker.isBlocked ? 'Blocked' : 'Active'}</p>
-                {/* Add more worker details as needed */}
+
+                {/* Role and Branch Selection */}
+                <div className="mt-3">
+                  <select 
+                    value={selectedRole} 
+                    onChange={(e) => setSelectedRole(e.target.value)} 
+                    className="mr-2 p-1 border rounded"
+                  >
+                    <option value="worker">Worker</option>
+                    <option value="admin">Admin</option>
+                    <option value="user">User</option>
+                  </select>
+
+                  {selectedRole === 'worker' && (
+                    <select 
+                      value={selectedBranch} 
+                      onChange={(e) => setSelectedBranch(e.target.value)} 
+                      className="mr-2 p-1 border rounded"
+                    >
+                      <option value="">Select Branch</option>
+                      {branches.map(branch => (
+                        <option key={branch.id} value={branch.id}>{branch.name}</option>
+                      ))}
+                    </select>
+                  )}
+
+                  <button 
+                    className="p-2 bg-blue-500 text-white rounded" 
+                    onClick={() => handleRoleChange(worker.id)}
+                  >
+                    Update Role
+                  </button>
+                </div>
               </div>
             )}
           </li>

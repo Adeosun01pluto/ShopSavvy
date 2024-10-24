@@ -19,7 +19,6 @@ function WorkerDashboardHome() {
   const [loading, setLoading] = useState(true);
   const [lowStockItems, setLowStockItems] = useState([]);
 
-  console.log(lowStockItems, "lowStockItems")
   
   useEffect(() => {
     const fetchUserRole = async () => {
@@ -123,7 +122,6 @@ function WorkerDashboardHome() {
 
     fetchLowStockItems();
   }, []);
-  
   if (loading) return <div className='flex items-center justify-center w-full min-h-[40vh]'>
     <ThreeDots className="text-center"/>
   </div>;
@@ -137,7 +135,7 @@ function WorkerDashboardHome() {
             <div>
               {loggedInUser && (
                 <div>
-                  <p className="text-md md:text-xl">Name: {loggedInUser.displayName || 'N/A'}</p>
+                  {/* <p className="text-md md:text-xl">Name: {loggedInUser.displayName || 'N/A'}</p> */}
                   <p className="text-md md:text-xl">Email: {loggedInUser.email}</p>
                   <p className="text-md md:text-xl">Role: {role}</p>
                 </div>
@@ -151,12 +149,14 @@ function WorkerDashboardHome() {
         <div className="bg-green-100 p-3 md:p-4 rounded-lg shadow">
           <FaChartLine className="text-xl md:text-3xl text-green-600 mb-2" />
           <h2 className="text-lg md:text-xl font-semibold">Today's Sales</h2>
-          <p className="text-md md:text-2xl">${dailySales}</p>
+          {/* <p className="text-md md:text-2xl">${dailySales}</p> */}
+          <p className="text-md md:text-2xl">No Available Yet</p>
         </div>
         <div className="bg-blue-100 p-3 md:p-4 rounded-lg shadow">
           <FaBoxes className="text-xl md:text-3xl text-blue-600 mb-2" />
           <h2 className="text-lg md:text-xl font-semibold">Total Items Sold</h2>
-          <p className="text-md md:text-2xl">{totalItemsSold}</p>
+          {/* <p className="text-md md:text-2xl">{totalItemsSold}</p> */}
+          <p className="text-md md:text-2xl">No Available Yet</p>
         </div>
       </div>
 

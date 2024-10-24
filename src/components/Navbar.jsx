@@ -6,12 +6,14 @@ import { signOut } from 'firebase/auth';
 import { AiOutlineProduct } from 'react-icons/ai';
 import { RxDashboard } from 'react-icons/rx';
 import { doc, getDoc } from 'firebase/firestore';
+import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userRole, setUserRole] = useState(null);
   const navigate = useNavigate();
+  const { user } = useAuth(); // Access user from context
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
@@ -42,6 +44,11 @@ const Navbar = () => {
       console.error('Error signing out: ', error);
     }
   };
+  const handleProductClick = () => {
+    if (user?.role === 'worker' && user.branchId) {
+      navigate(`/products/${user.branchId}`); // Route to worker's branch
+    }
+  };
 
   const handleDashboardClick = () => {
     if (userRole === 'Admin') {
@@ -53,11 +60,11 @@ const Navbar = () => {
 
   return (
     <nav className="bg-white shadow-lg">
-      <div className="max-w-6xl mx-auto px-4">
+      <div className="container mx-auto px-4">
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-7">
-            <Link to="/" className="flex items-center py-4 px-2">
-              <span className="font-semibold text-gray-500 text-lg">ElectroStore</span>
+            <Link to="/" className="flex items-center py-4">
+              <span className="font-semibold text-gray-500 text-xl">Royal Band</span>
             </Link>
           </div>
 
@@ -76,9 +83,21 @@ const Navbar = () => {
             <Link to="/" className="py-4 px-2 text-gray-500 hover:text-[#435EEF]">
               <FaHome className="inline mr-1" /> Home
             </Link>
-            <Link to="/products" className="py-4 px-2 text-gray-500 hover:text-[#435EEF]">
-              <AiOutlineProduct className="inline mr-1" /> Products
-            </Link>
+            {user?.role === 'worker' ? (
+              <button
+                onClick={handleProductClick}
+                className="py-4 px-2 text-gray-500 hover:text-[#435EEF]"
+              >
+                <AiOutlineProduct className="inline mr-1" /> Products
+              </button>
+            ) : user?.role === 'admin' ? (
+              <Link
+                to="/branch-selection"
+                className="py-4 px-2 text-gray-500 hover:text-[#435EEF]"
+              >
+                Branches
+              </Link>
+            ) : null}
             <button
               onClick={handleDashboardClick}
               className="py-4 px-2 text-gray-500 hover:text-[#435EEF]"
@@ -108,9 +127,25 @@ const Navbar = () => {
             <Link to="/" className="py-2 px-4 text-gray-500 hover:text-[#435EEF]" onClick={() => setIsOpen(false)}>
               <FaHome className="inline mr-1" /> Home
             </Link>
-            <Link to="/products" className="py-2 px-4 text-gray-500 hover:text-[#435EEF]" onClick={() => setIsOpen(false)}>
-              <AiOutlineProduct className="inline mr-1" /> Products
-            </Link>
+            {user?.role === 'worker' ? (
+              <button
+                onClick={() => {
+                  handleProductClick();
+                  setIsOpen(false);
+                }}
+                className="py-2 px-4 text-gray-500 hover:text-[#435EEF]"
+              >
+                <AiOutlineProduct className="inline mr-1" /> Products
+              </button>
+            ) : user?.role === 'admin' ? (
+              <Link
+                to="/branch-selection"
+                className="py-2 px-4 text-gray-500 hover:text-[#435EEF]"
+                onClick={() => setIsOpen(false)}
+              >
+                Branches
+              </Link>
+            ) : null}
             <button
               onClick={() => {
                 handleDashboardClick();

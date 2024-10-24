@@ -5,6 +5,7 @@ import OwnerDashboardHome from './OwnerDashboardHome';
 import Workers from './Workers';
 import Inventory from './Inventory';
 import Sales from './Sales';
+import AddCollection from './AddCollection';
 
 const OwnerDashboard = () => {
   return (
@@ -20,6 +21,7 @@ const OwnerDashboard = () => {
             <Route path="workers" element={<Workers />} />
             <Route path="inventory" element={<Inventory />} />
             <Route path="sales" element={<Sales />} />
+            <Route path="add-collection" element={<AddCollection />} /> {/* New route */}
           </Routes>
         </main>
       </div>

@@ -27,6 +27,9 @@ const Signup = () => {
       phoneNumber: phoneNumber,
       isAdmin: false,
       isWorker: false,
+      role: "user",
+      branchId:null,
+      branchName: null
     });
   };
 
