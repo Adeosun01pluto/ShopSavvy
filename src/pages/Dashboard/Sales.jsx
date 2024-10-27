@@ -193,7 +193,7 @@ const Sales = () => {
           new TableCell({ children: [new Paragraph({ text: sale.productModel })] }),     // Product Model
           new TableCell({ children: [new Paragraph({ text: sale.category })] }),         // Category
           new TableCell({ children: [new Paragraph({ text: sale.quantity.toString() })] }), // Quantity
-          new TableCell({ children: [new Paragraph({ text: `&#8358;${sale.amount.toLocaleString()}` })] }), // Amount
+          new TableCell({ children: [new Paragraph({ text: `${sale.amount.toLocaleString()}` })] }), // Amount
           new TableCell({ children: [new Paragraph({ text: sale.soldBy })] }),           // Sold By
           new TableCell({ children: [new Paragraph({ text: sale.timestamp })] }),        // Date
         ],
@@ -207,7 +207,7 @@ const Sales = () => {
         new TableCell({ children: [new Paragraph({ text: '' })] }), // Empty cell
         new TableCell({ children: [new Paragraph({ text: '' })] }), // Empty cell
         new TableCell({ children: [new Paragraph({ text: totalQuantity.toString(), bold: true })] }), // Total Quantity
-        new TableCell({ children: [new Paragraph({ text: `&#8358;${totalAmount.toLocaleString()}`, bold: true })] }), // Total Amount
+        new TableCell({ children: [new Paragraph({ text: `${totalAmount.toLocaleString()}`, bold: true })] }), // Total Amount
         new TableCell({ children: [new Paragraph({ text: '' })] }), // Empty cell
         new TableCell({ children: [new Paragraph({ text: '' })] }), // Empty cell
       ],
@@ -238,7 +238,7 @@ const Sales = () => {
                     new TableCell({ children: [new Paragraph({ text: 'Product Model', bold: true })] }),
                     new TableCell({ children: [new Paragraph({ text: 'Category', bold: true })] }),
                     new TableCell({ children: [new Paragraph({ text: 'Quantity', bold: true })] }),
-                    new TableCell({ children: [new Paragraph({ text: 'Amount', bold: true })] }),
+                    new TableCell({ children: [new Paragraph({ text: 'Amount in ₦', bold: true })] }),
                     new TableCell({ children: [new Paragraph({ text: 'Sold By', bold: true })] }),
                     new TableCell({ children: [new Paragraph({ text: 'Date', bold: true })] }),
                   ],
