@@ -285,7 +285,7 @@ const Sales = () => {
         </div>
       )}
 
-      <div className="mb-4 w-full flex">
+      <div className="mb-4 w-full flex flex-col gap-1 sm:flex-row">
         <input
           type="text"
           placeholder="Search by product ID or category"
