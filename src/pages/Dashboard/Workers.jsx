@@ -83,8 +83,8 @@ const Workers = () => {
   };
 
   if (loading) return (
-    <div className='flex items-center justify-center w-full min-h-[40vh]'>
-      <ThreeDots className="text-center" />
+    <div className='flex items-center justify-center w-full'>
+      <ThreeDots color='#435EEF'  height={50} width={50} className="text-center" />
     </div>
   );
 

@@ -14,20 +14,19 @@ const ProductListing = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 2; // Number of items per page
   const navigate = useNavigate();
-  const { branchId } = useParams(); // Capture the branchId from the URL
-  
+  const { branchId } = useParams();
+
   // Fetch branch categories
   useEffect(() => {
     const fetchCategories = async () => {
       setLoading(true);
       try {
         const branchRef = doc(db, 'branches', branchId);
-        // Fetch the current branch document to get its existing categories
         const branchDoc = await getDoc(branchRef);
-        const categoriesList = branchDoc.data().categories
+        const categoriesList = branchDoc.data().categories;
         if (categoriesList.length > 0) {
-          setCategories(branchDoc.data().categories);
-          setSelectedCategory(categoriesList[0].name); // Set the first category as default
+          setCategories(categoriesList);
+          setSelectedCategory(categoriesList[0].name);
         }
       } catch (error) {
         console.error('Error fetching categories: ', error);
@@ -45,17 +44,14 @@ const ProductListing = () => {
       setLoading(true);
       try {
         let items = [];
-        
+
         if (selectedCategory) {
           const branchRef = doc(db, 'branches', branchId);
           const productsSnapshot = await getDocs(collection(branchRef, selectedCategory));
           items = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         }
 
-        // Convert search term to lowercase
         const lowerSearchTerm = searchTerm.trim().toLowerCase();
-
-        // Filter results locally if search term is provided
         const filteredItems = searchTerm
           ? items.filter(item =>
               Object.values(item).some(value =>
@@ -77,13 +73,13 @@ const ProductListing = () => {
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
-    setCurrentPage(1); // Reset to first page on search
+    setCurrentPage(1);
   };
 
   const handleCategoryChange = (e) => {
     setSelectedCategory(e.target.value);
-    setSearchTerm(''); // Clear search when changing categories
-    setCurrentPage(1); // Reset to first page on category change
+    setSearchTerm('');
+    setCurrentPage(1);
   };
 
   const handleProductClick = (id) => {
@@ -107,12 +103,10 @@ const ProductListing = () => {
     }
   };
 
-  // Calculate the items to display for the current page
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = products.slice(indexOfFirstItem, indexOfLastItem);
-  console.log(currentItems)
-  // Handle page navigation
+
   const handlePageChange = (direction) => {
     setCurrentPage(prevPage => {
       if (direction === 'next') {
@@ -154,7 +148,7 @@ const ProductListing = () => {
           <ThreeDots color="#3B82F6" height={50} width={50} />
         </div>
       ) : (
-        <div>
+        <>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mx-auto md:w-[80%]">
             {currentItems.length === 0 ? (
               <p className="text-center text-gray-500 col-span-full">No products found.</p>
@@ -165,17 +159,6 @@ const ProductListing = () => {
                   className="bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden cursor-pointer transition-transform hover:scale-105"
                   onClick={() => handleProductClick(product.id)}
                 >
-                  {/* {product.imageUrl ? (
-                    <img
-                      src={product.imageUrl}
-                      alt={product.name}
-                      className="w-full h-48 object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-48 flex items-center justify-center bg-gray-200">
-                      {getCategoryIcon()}
-                    </div>
-                  )} */}
                   <div className="p-4">
                     <h2 className="text-xl font-semibold mb-2">{product?.brand}</h2>
                     <p className="text-gray-700 mb-2">{product?.model}</p>
@@ -185,30 +168,31 @@ const ProductListing = () => {
               ))
             )}
           </div>
-          <div className="flex justify-between items-center mt-6 md:w-[30%] mx-auto">
-            <button
-              className="p-2 bg-blue-500 text-white rounded-lg disabled:opacity-50"
-              onClick={() => handlePageChange('prev')}
-              disabled={currentPage === 1}
-            >
-              Previous
-            </button>
-            <span>
-              Page {currentPage} of {Math.ceil(products.length / itemsPerPage)}
-            </span>
-            <button
-              className="p-2 bg-blue-500 text-white rounded-lg disabled:opacity-50"
-              onClick={() => handlePageChange('next')}
-              disabled={currentPage === Math.ceil(products.length / itemsPerPage)}
-            >
-              Next
-            </button>
-          </div>
-        </div>
+          {products.length > 0 && (
+            <div className="flex justify-between items-center mt-6 md:w-[30%] mx-auto">
+              <button
+                className="p-2 bg-blue-500 text-white rounded-lg disabled:opacity-50"
+                onClick={() => handlePageChange('prev')}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </button>
+              <span>
+                Page {currentPage} of {Math.ceil(products.length / itemsPerPage)}
+              </span>
+              <button
+                className="p-2 bg-blue-500 text-white rounded-lg disabled:opacity-50"
+                onClick={() => handlePageChange('next')}
+                disabled={currentPage === Math.ceil(products.length / itemsPerPage)}
+              >
+                Next
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
 };
 
 export default ProductListing;
-

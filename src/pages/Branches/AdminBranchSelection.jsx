@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase/config';
+import { ThreeDots } from 'react-loader-spinner';
 
 const AdminBranchSelection = () => {
   const [branches, setBranches] = useState([]);
@@ -12,20 +13,20 @@ const AdminBranchSelection = () => {
     const fetchBranches = async () => {
       try {
         // Fetch the branches from Firestore
-        const branchCollectionRef = collection(db, 'branches'); // 'branches' is the collection name in Firestore
+        const branchCollectionRef = collection(db, 'branches');
         const branchSnapshot = await getDocs(branchCollectionRef);
 
         // Map through the documents and extract id and name
         const branchList = branchSnapshot.docs.map((doc) => ({
-          id: doc.id, // Document ID (Firestore auto-generated ID)
-          ...doc.data(), // All the other data in the document (e.g., name)
+          id: doc.id,
+          ...doc.data(),
         }));
 
-        setBranches(branchList.reverse()); // Set the fetched branches into state
+        setBranches(branchList.reverse());
       } catch (error) {
         console.error('Error fetching branches:', error);
       } finally {
-        setLoading(false); // Ensure loading is turned off once data is fetched
+        setLoading(false);
       }
     };
 
@@ -38,7 +39,11 @@ const AdminBranchSelection = () => {
   };
 
   if (loading) {
-    return <div className="text-center mt-10">Loading branches...</div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <ThreeDots color="#3B82F6" height={80} width={80} />
+      </div>
+    );
   }
 
   return (

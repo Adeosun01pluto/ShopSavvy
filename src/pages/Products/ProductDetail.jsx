@@ -212,7 +212,7 @@ const ProductDetail = () => {
       <h1 className="text-xl md:text-3xl font-bold text-center mb-6">Product Details</h1>
       {loading ? (
         <div className="flex justify-center items-center min-h-[50vh]">
-          <ThreeDots className="w-12 h-12 text-blue-500 animate-spin" />
+          <ThreeDots color="#435EEF" height={50} width={50} />
         </div>
       ) : (
         product ? (
