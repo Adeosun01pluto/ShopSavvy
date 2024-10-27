@@ -11,7 +11,7 @@ import ProtectedRoute from './ProtectedRoute';
 import AdminBranchSelection from './pages/Branches/AdminBranchSelection';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThreeDots } from 'react-loader-spinner';
-import NotFound from './NotFOund';
+import NotFound from './NotFound';
 
 function AppRoutes() {
   const { loading } = useAuth();
