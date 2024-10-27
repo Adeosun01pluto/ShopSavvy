@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FaSearch, FaShoppingCart, FaMicrochip, FaMobile, FaLaptop, FaHeadphones, FaMapMarkerAlt, FaInfoCircle, FaPhone, FaCodeBranch } from 'react-icons/fa';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { useAuth } from '../../context/AuthContext';
 import { ThreeDots } from 'react-loader-spinner';
@@ -21,23 +21,58 @@ const Home_ = () => {
 
   useEffect(() => {
     const fetchBranches = async () => {
+      if (!user) {
+        console.log("User not logged in.");
+        return;
+      }
+  
       try {
-        const branchCollectionRef = collection(db, 'branches');
-        const branchSnapshot = await getDocs(branchCollectionRef);
-        const branchList = branchSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+        let branchList = [];
+  
+        if (user.role === "admin") {
+          // Fetch all branches for admins
+          const branchCollectionRef = collection(db, 'branches');
+          const branchSnapshot = await getDocs(branchCollectionRef);
+          branchList = branchSnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+        } else if (user.role === "worker") {
+          // Fetch only the worker's branch
+          if (!user.branchId) {
+            console.log("Worker's branch ID not found.");
+            return;
+          }
+          const branchRef = doc(db, 'branches', user.branchId);
+          const branchSnapshot = await getDoc(branchRef);
+  
+          if (branchSnapshot.exists()) {
+            branchList = [{
+              id: branchSnapshot.id,
+              ...branchSnapshot.data(),
+            }];
+          } else {
+            console.log("Branch not found.");
+          }
+        } else {
+          // Do not fetch for regular users
+          console.log("User role does not require branch fetching.");
+          return;
+        }
+  
+        // Set the branches state
         setBranches(branchList.reverse());
+  
       } catch (error) {
         console.error('Error fetching branches:', error);
       } finally {
         setLoading(false);
       }
     };
-
+  
     fetchBranches();
-  }, []);
+  }, [user]);
+
   return (
     <div className="container mx-auto p-3 sm:px-4 sm:py-8">
       {/* Hero Section */}

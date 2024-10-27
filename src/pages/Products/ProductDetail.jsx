@@ -285,9 +285,9 @@ const ProductDetail = () => {
                 </>
               ) : (
                 <>
-                  <p className="text-gray-700">Price: ${product.price}</p>
+                  <p className="text-gray-700">Price: &#8358;{product?.price.toLocaleString()}</p>
                   <p className="text-gray-700">Warranty: {product?.warranty}</p>
-                  <p className="text-lg font-bold">Quantities: {product.stock}</p>
+                  <p className="text-lg font-bold">Quantities: {product?.stock}</p>
                   {(user.role === "admin" || user.role === "worker") && (
                     <div className="flex relative items-center w-full">
                       <input
@@ -297,7 +297,7 @@ const ProductDetail = () => {
                         value={quantity}
                         onChange={(e) => setQuantity(Number(e.target.value))}
                         min="1"
-                        max={product.stock}
+                        max={product?.stock}
                       />
                       <button
                         onClick={handleSell}
@@ -351,11 +351,6 @@ const ProductDetail = () => {
           </div>
         </div>
       )}
-      {/* {(loading) && (
-        <div className="fixed inset-0 flex justify-center items-center bg-gray-800 bg-opacity-75 z-50">
-          <ThreeDots className="w-12 h-12 text-blue-500 animate-spin" />
-        </div>
-      )} */}
     </div>
   );
 };

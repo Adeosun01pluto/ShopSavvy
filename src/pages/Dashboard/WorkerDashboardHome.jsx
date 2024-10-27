@@ -4,110 +4,118 @@ import { db, auth } from '../../firebase/config'; // Ensure you have the correct
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { FaBoxes, FaChartLine, FaEdit, FaExclamationTriangle, FaUser } from 'react-icons/fa';
 import { ThreeDots } from 'react-loader-spinner';
+import { useAuth } from '../../context/AuthContext';
 
 function WorkerDashboardHome() {
-  const [goods, setGoods] = useState([
-    { id: 1, name: 'Smartphone X', price: 599.99, quantity: 50 },
-    { id: 2, name: 'Laptop Pro', price: 1299.99, quantity: 30 },
-    { id: 3, name: 'Wireless Earbuds', price: 149.99, quantity: 100 },
-  ]);
-
   const [dailySales, setDailySales] = useState([]);
+  const [weeklySales, setWeeklySales] = useState(0);
   const [totalItemsSold, setTotalItemsSold] = useState(0);
-  const [loggedInUser, setLoggedInUser] = useState(null);
-  const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(true);
   const [lowStockItems, setLowStockItems] = useState([]);
+  const {user} = useAuth()
 
-  
-  useEffect(() => {
-    const fetchUserRole = async () => {
-      const user = auth.currentUser;
-      setLoggedInUser(user);
-      if (user) {
-        const userDoc = await getDoc(doc(db, 'users', user.uid)); // Adjust path as needed
-        if (userDoc.exists()) {
-          setRole(userDoc.data().isWorker ? 'worker' : userDoc.data().isAdmin ? 'admin' : 'none');
-        }
-      }
-      setLoading(false);
-    };
-
-    fetchUserRole();
-  }, []);
-
+  // Fetch daily's and weekly's sales 
   useEffect(() => {
     const fetchSalesData = async () => {
-      if (!loggedInUser || !loggedInUser.uid) {
+      if (!user || !user.uid) {
         console.log('No logged-in user');
         return;
       }
-
       try {
         const today = new Date();
         const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
         const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
-
+        const startOfWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000); // Start date for weekly sales
         // Log the date range to ensure correctness
-        console.log('Start of Day:', startOfDay.toISOString());
-        console.log('End of Day:', endOfDay.toISOString());
-
+        // console.log('Start of Day:', startOfDay.toISOString());
+        // console.log('End of Day:', endOfDay.toISOString());
         // Fetch sales for today by the logged-in worker
         const salesQuery = query(
-          collection(db, 'sales'),
+          collection(db, 'branches', user.branchId, "sales"),
           where('timestamp', '>=', startOfDay.toISOString()),
           where('timestamp', '<', endOfDay.toISOString()),
-          where('workerId', '==', loggedInUser.uid) // Filter sales by the logged-in worker
+          where('workerId', '==', user.uid) // Filter sales by the logged-in worker
         );
-
         const salesSnapshot = await getDocs(salesQuery);
-
         if (salesSnapshot.empty) {
           console.log('No sales found for today.');
           setDailySales([]);
           setTotalItemsSold(0);
           return;
         }
-
         const sales = salesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-        console.log('Sales Data:', sales);
+        // console.log('Sales Data:', sales);
         // Sum up prices and set daily sales
         const totalSales = sales.reduce((acc, sale) => {
           const price = parseFloat(sale.price);
           const quantity = parseInt(sale.quantity, 10);
           return acc + (isNaN(price) ? 0 : price * (isNaN(quantity) ? 1 : quantity)); // Multiply price by quantity and add to accumulator
         }, 0);
-
         // Set daily sales total
         setDailySales(totalSales);
         setTotalItemsSold(sales.length);
+        
+        // Fetch weekly sales data
+        const weeklySalesQuery = query(
+          collection(db, 'branches', user.branchId, 'sales'),
+          where('timestamp', '>=', startOfWeek.toISOString()),
+          where('timestamp', '<', endOfDay.toISOString()),
+          where('workerId', '==', user.uid)
+        );
+        const weeklySalesSnapshot = await getDocs(weeklySalesQuery);
+        
+        const weeklySalesData = weeklySalesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        console.log('Weekly Sales Data:', weeklySalesData);
+
+        // Calculate total weekly sales
+        const weeklyTotal = weeklySalesData.reduce((acc, sale) => {
+          const price = parseFloat(sale.price);
+          const quantity = parseInt(sale.quantity, 10);
+          return acc + (isNaN(price) ? 0 : price * (isNaN(quantity) ? 1 : quantity));
+        }, 0);
+
+        setWeeklySales(weeklyTotal);
+
 
       } catch (error) {
         console.error('Error fetching sales data:', error);
+      } finally{
+        setLoading(false);
       }
     };
 
     fetchSalesData();
-  }, [loggedInUser]);
+  }, [user]);
   
   useEffect(() => {
     const fetchLowStockItems = async () => {
       try {
-        const collections = ['laptops', 'phones', 'gadgets'];
         const lowStockItems = [];
-        
-        for (const collectionName of collections) {
-          const itemsCollection = collection(db, collectionName);
+        const branchRef = doc(db, 'branches', user.branchId);
+        const branchDoc = await getDoc(branchRef);
+
+        // Get the list of categories from the branch document
+        const categoriesList = branchDoc.data()?.categories || [];
+        console.log('Categories List:', categoriesList);
+
+        // Loop through each category in the categories list
+        for (const categoryName of categoriesList) {
+          if (typeof categoryName.name !== 'string') {
+            console.error('Invalid category name:', categoryName);
+            continue;
+          }
+          // Accessing the collection within the branch based on category name
+          const itemsCollection = collection(db, 'branches', user.branchId, categoryName.name);
           const itemsSnapshot = await getDocs(itemsCollection);
-          itemsSnapshot.forEach(doc => {
+
+          itemsSnapshot.forEach((doc) => {
             const item = doc.data();
-            if (item.stock < 20) {
+            if (item.stock < 5) {
               lowStockItems.push({
-                brand: item.brand,
-                model: item.model,
-                category: item.category,
-                partName: item.partName,
+                brand: item.brand || 'N/A',
+                model: item.model || 'N/A',
+                category: categoryName,
+                partName: item.partName || 'N/A',
                 stock: item.stock,
               });
             }
@@ -121,10 +129,16 @@ function WorkerDashboardHome() {
     };
 
     fetchLowStockItems();
-  }, []);
-  if (loading) return <div className='flex items-center justify-center w-full min-h-[40vh]'>
-    <ThreeDots className="text-center"/>
-  </div>;
+  }, [user.branchId]);
+  
+  if (loading) {
+    return (
+      <div className="flex justify-center">
+        <ThreeDots color="#435EEF" height={50} width={50} />
+      </div>
+    );
+  }
+
 
   return (
     <div className='px-3 sm:p-0'>
@@ -133,11 +147,11 @@ function WorkerDashboardHome() {
           <div className="flex items-center gap-4">
             <FaUser className="text-xl md:text-7xl text-gray-600 mr-4" />
             <div>
-              {loggedInUser && (
+              {user && (
                 <div>
-                  {/* <p className="text-md md:text-xl">Name: {loggedInUser.displayName || 'N/A'}</p> */}
-                  <p className="text-md md:text-xl">Email: {loggedInUser.email}</p>
-                  <p className="text-md md:text-xl">Role: {role}</p>
+                  {/* <p className="text-md md:text-xl">Name: {user.displayName || 'N/A'}</p> */}
+                  <p className="text-md md:text-xl">Email: {user.email}</p>
+                  <p className="text-md md:text-xl">Role: {user.role}</p>
                 </div>
               )}
             </div>
@@ -145,32 +159,26 @@ function WorkerDashboardHome() {
         </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <div className="bg-green-100 p-3 md:p-4 rounded-lg shadow">
           <FaChartLine className="text-xl md:text-3xl text-green-600 mb-2" />
           <h2 className="text-lg md:text-xl font-semibold">Today's Sales</h2>
-          {/* <p className="text-md md:text-2xl">${dailySales}</p> */}
-          <p className="text-md md:text-2xl">No Available Yet</p>
+          <p className="text-md md:text-2xl">&#8358;{dailySales.toLocaleString()}</p>
+          {/* <p className="text-md md:text-2xl">No Available Yet</p> */}
+        </div>
+        <div className="bg-orange-100 p-3 md:p-4 rounded-lg shadow">
+          <FaChartLine className="text-xl md:text-3xl text-green-600 mb-2" />
+          <h2 className="text-lg md:text-xl font-semibold">Weekly's Sales</h2>
+          <p className="text-md md:text-2xl">&#8358;{weeklySales.toLocaleString()}</p>
+          {/* <p className="text-md md:text-2xl">No Available Yet</p> */}
         </div>
         <div className="bg-blue-100 p-3 md:p-4 rounded-lg shadow">
           <FaBoxes className="text-xl md:text-3xl text-blue-600 mb-2" />
           <h2 className="text-lg md:text-xl font-semibold">Total Items Sold</h2>
-          {/* <p className="text-md md:text-2xl">{totalItemsSold}</p> */}
-          <p className="text-md md:text-2xl">No Available Yet</p>
+          <p className="text-md md:text-2xl">{totalItemsSold}</p>
+          {/* <p className="text-md md:text-2xl">No Available Yet</p> */}
         </div>
       </div>
-
-      {/* Sales Chart
-      <h2 className="text-lg lg:text-2xl font-semibold mb-4">Sales Overview</h2>
-      <ResponsiveContainer width="100%" height={300}>
-        <LineChart data={dailySales}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="date" />
-          <YAxis />
-          <Tooltip />
-          <Line type="monotone" dataKey="sales" stroke="#8884d8" />
-        </LineChart>
-      </ResponsiveContainer> */}
 
        {/* Low Stock Alert */}
        <div className="bg-yellow-100 p-4 rounded-lg shadow mt-8">

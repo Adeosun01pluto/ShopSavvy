@@ -10,10 +10,11 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
-  
+    
     useEffect(() => {
       const fetchUserData = async (currentUser) => {
         const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+        console.log(userDoc.data())
         if (userDoc.exists()) {
           const userData = userDoc.data();
           setUser({

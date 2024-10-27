@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaHome, FaSignOutAlt, FaBars, FaTimes, FaUser } from 'react-icons/fa';
+import { FaHome, FaSignOutAlt, FaBars, FaTimes, FaUser, FaCodeBranch } from 'react-icons/fa';
 import { auth, db } from '../firebase/config';
 import { signOut } from 'firebase/auth';
 import { AiOutlineProduct } from 'react-icons/ai';
@@ -93,9 +93,9 @@ const Navbar = () => {
             ) : user?.role === 'admin' ? (
               <Link
                 to="/branch-selection"
-                className="py-4 px-2 text-gray-500 hover:text-[#435EEF]"
+   flex items-center              className="py-4 px-2 text-gray-500 hover:text-[#435EEF]"
               >
-                Branches
+                <FaCodeBranch className="inline" /> Branches
               </Link>
             ) : null}
             <button
@@ -140,10 +140,10 @@ const Navbar = () => {
             ) : user?.role === 'admin' ? (
               <Link
                 to="/branch-selection"
-                className="py-2 px-4 text-gray-500 hover:text-[#435EEF]"
+                className="py-2 px-4 text-gray-500 flex items-center hover:text-[#435EEF]"
                 onClick={() => setIsOpen(false)}
               >
-                Branches
+                <FaCodeBranch className="inline" /> Branches
               </Link>
             ) : null}
             <button

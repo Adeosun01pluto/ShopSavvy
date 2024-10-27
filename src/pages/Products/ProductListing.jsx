@@ -162,7 +162,7 @@ const ProductListing = () => {
                   <div className="p-4">
                     <h2 className="text-xl font-semibold mb-2">{product?.brand}</h2>
                     <p className="text-gray-700 mb-2">{product?.model}</p>
-                    <p className="text-lg font-semibold">${product?.price || "No Price"}</p>
+                    <p className="text-lg font-semibold">&#8358;{product?.price.toLocaleString() || "No Price"}</p>
                   </div>
                 </div>
               ))
