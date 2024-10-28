@@ -19,7 +19,7 @@ function AppRoutes() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <ThreeDots color="#435EEF" height={80} width={80} />
+        <ThreeDots color="#435EEF" height={70} width={70} />
       </div>
     );
   }
